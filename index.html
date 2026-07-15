@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IFTIHAD_OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#171a24;
+    --bg-deep:#0c0e15;
+    --panel:#232739;
+    --panel-2:#1a1e2c;
+    --line:#343a52;
+    --accent:#ff7a3d;
+    --teal:#4fd6c0;
+    --danger:#ff5f57;
+    --text:#e9e7df;
+    --text-dim:#9aa0b4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;user-select:none;}
+  html,body{
+    height:100%;
+    background:var(--bg-deep);
+    color:var(--text);
+    font-family:'Space Grotesk',sans-serif;
+    overflow:hidden;
+  }
+
+  /* ---------------- BOOT SCREEN ---------------- */
+  #boot{
+    position:fixed;inset:0;background:#000;color:#5eeecb;
+    font-family:'VT323',monospace;font-size:22px;line-height:1.5;
+    padding:40px;z-index:999;white-space:pre-wrap;
+  }
+  #boot .cursor{display:inline-block;width:10px;background:#5eeecb;animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* ---------------- DESKTOP ---------------- */
+  #desktop{
+    position:fixed;inset:0;
+    background:
+      linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px) 0 0/48px 48px,
+      linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px) 0 0/48px 48px,
+      radial-gradient(60% 50% at 82% 12%, rgba(255,122,61,0.10) 0%, transparent 60%),
+      radial-gradient(55% 45% at 12% 85%, rgba(79,214,192,0.10) 0%, transparent 60%),
+      radial-gradient(120% 100% at 15% 0%, #263153 0%, var(--bg) 55%);
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+    animation: driftGlow 24s ease-in-out infinite alternate;
+    opacity:0;transition:opacity 0.6s ease;
+  }
+  @keyframes driftGlow{
+    0%{background-position:0 0, 0 0, 0% 0%, 0% 0%, 0 0;}
+    100%{background-position:20px 20px, 20px 20px, 6% 4%, -6% -4%, 0 0;}
+  }
+  #desktop::after{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,0.35), transparent),
+      radial-gradient(1.5px 1.5px at 65% 15%, rgba(255,255,255,0.25), transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 85% 55%, rgba(255,255,255,0.22), transparent),
+      radial-gradient(1.5px 1.5px at 90% 85%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 30% 90%, rgba(255,255,255,0.2), transparent);
+    opacity:0.6;
+  }
+  #icons{
+    position:absolute;top:32px;left:28px;
+    display:flex;flex-direction:column;gap:26px;
+  }
+  .icon{
+    width:88px;text-align:center;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+  }
+  .icon .glyph{
+    width:46px;height:46px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .icon span{
+    font-family:'Space Mono',monospace;
+    font-size:12px;color:var(--text);
+    background:transparent;padding:2px 6px;border-radius:2px;
+  }
+  .icon:hover span{background:var(--teal);color:var(--bg-deep);}
+
+  /* ---------------- WINDOWS ---------------- */
+  .win{
+    position:absolute;
+    min-width:280px;
+    max-height:80vh;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.45);
+    display:flex;flex-direction:column;
+    overflow:hidden;
+  }
+  .win-header{
+    background:var(--panel-2);
+    padding:9px 12px;
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:grab;
+    border-bottom:1px solid var(--line);
+  }
+  .win-header:active{cursor:grabbing;}
+  .win-title{
+    font-family:'Space Mono',monospace;font-size:12px;
+    color:var(--text-dim);letter-spacing:0.04em;text-transform:uppercase;
+    display:flex;align-items:center;gap:8px;
+  }
+  .win-title .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+  .win-controls{display:flex;gap:6px;}
+  .win-btn{
+    width:16px;height:16px;border-radius:3px;
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;color:var(--text-dim);cursor:pointer;
+    background:transparent;
+  }
+  .win-btn.close:hover{background:var(--danger);color:#2a0d0b;border-color:var(--danger);}
+  .win-btn.min:hover{background:var(--accent);color:#2a1608;border-color:var(--accent);}
+    .win-body {
+        padding: 22px 24px;
+        overflow-y: auto;
+        font-size: 14.5px;
+        line-height: 1.65;
+        color: var(--text);
+        scrollbar-width: thin;
+        scrollbar-color: var(--teal) transparent;
+    }
+
+        .win-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .win-body::-webkit-scrollbar-thumb {
+            background: var(--teal);
+            border-radius: 3px;
+        }
+
+        .win-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+  .win-body h2{
+    font-family:'Space Mono',monospace;
+    font-size:17px;color:var(--teal);
+    margin-bottom:14px;letter-spacing:0.01em;
+  }
+  .win-body p{color:var(--text-dim);margin-bottom:14px;max-width:440px;}
+  .win-body .tag{
+    display:inline-block;font-family:'Space Mono',monospace;font-size:11px;
+    color:var(--teal);border:1px solid var(--line);border-radius:20px;
+    padding:3px 10px;margin:0 6px 6px 0;
+  }
+
+  .filelist{display:flex;flex-direction:column;gap:4px;}
+  .filerow{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:6px;cursor:pointer;
+  }
+  .filerow:hover{background:rgba(79,214,192,0.08);}
+  .filerow .glyph{width:22px;height:22px;flex-shrink:0;}
+  .filerow .meta{display:flex;flex-direction:column;}
+  .filerow .fname{font-family:'Space Mono',monospace;font-size:13px;}
+  .filerow .fdesc{font-size:12px;color:var(--text-dim);}
+
+  .contact-row{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;}
+  .contact-row:last-child{border-bottom:none;}
+  .contact-row a{color:var(--teal);text-decoration:none;}
+  .contact-row a:hover{text-decoration:underline;}
+
+  .log-entry{padding:14px 0;border-bottom:1px solid var(--line);}
+  .log-entry:last-child{border-bottom:none;}
+  .log-date{
+    font-family:'Space Mono',monospace;font-size:11px;
+    color:var(--accent);letter-spacing:0.04em;
+    display:flex;align-items:center;gap:8px;margin-bottom:6px;
+  }
+  .log-date::before{content:'>';color:var(--teal);}
+  .log-entry h3{font-size:14.5px;color:var(--text);margin-bottom:6px;font-family:'Space Mono',monospace;font-weight:400;}
+  .log-entry p{color:var(--text-dim);font-size:13.5px;margin-bottom:8px;max-width:none;}
+
+  /* ---- Skills (static, display-only) ---- */
+  .skills-cat{margin-bottom:16px;}
+  .skills-cat h4{
+    font-family:'Space Mono',monospace;font-size:11px;color:var(--accent);
+    text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;
+  }
+  .skills-cat .skillrow{display:flex;flex-wrap:wrap;gap:8px;}
+  .skills-cat .skillrow span{
+    font-size:12.5px;color:var(--text);
+    border:1px solid rgba(94,234,212,0.25);
+    padding:5px 12px;border-radius:2px;
+    font-family:'Space Mono',monospace;
+    pointer-events:none; /* display-only, not interactive */
+  }
+
+  /* ---- Key Projects (interactive thumbnails) ---- */
+  .projects-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:14px;margin:18px 0 6px;
+  }
+  .project-card{
+    border:1px solid rgba(94,234,212,0.18);border-radius:8px;
+    overflow:hidden;background:rgba(255,255,255,0.02);
+    cursor:pointer;transition:border-color 0.25s ease, transform 0.25s ease;
+  }
+  .project-card:hover{border-color:var(--teal);transform:translateY(-3px);}
+  .project-thumb{position:relative;width:100%;aspect-ratio:16/9;background:#12141c;}
+  .project-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .project-thumb .thumb-fallback{
+    display:none;position:absolute;inset:0;align-items:center;justify-content:center;
+    text-align:center;padding:8px;font-family:'Space Mono',monospace;font-size:9.5px;
+    color:var(--text-dim);border:1px dashed var(--line);
+  }
+  .project-card-body{padding:10px 12px;}
+  .project-card-body h4{font-family:'Space Mono',monospace;font-size:12.5px;color:var(--text);margin-bottom:3px;}
+  .project-card-body .meta{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--teal);margin-bottom:6px;}
+  .project-card-body .more{font-family:'Space Mono',monospace;font-size:11.5px;color:var(--text-dim);}
+  .project-card:hover .more{color:var(--teal);}
+
+  /* ---- Desktop click sparks ---- */
+  .spark{
+    position:fixed;width:6px;height:6px;border-radius:1px;
+    pointer-events:none;z-index:300;
+    animation:sparkburst 0.6s ease-out forwards;
+  }
+  @keyframes sparkburst{
+    0%{transform:translate(0,0) scale(1);opacity:1;}
+    100%{transform:translate(var(--sx), var(--sy)) scale(0.3);opacity:0;}
+  }
+  .popup-text{
+    position:fixed;font-family:'Space Mono',monospace;font-size:12px;
+    color:var(--accent);pointer-events:none;z-index:300;
+    animation:floatUp 1s ease-out forwards;
+    white-space:nowrap;
+  }
+  @keyframes floatUp{
+    0%{opacity:1;transform:translateY(0);}
+    100%{opacity:0;transform:translateY(-40px);}
+  }
+
+  /* ---- Easter egg banner ---- */
+  #easterBanner{
+    position:fixed;top:40%;left:50%;
+    transform:translate(-50%,-50%);
+    font-family:'VT323',monospace;font-size:44px;
+    color:var(--teal);text-shadow:0 0 24px rgba(79,214,192,0.6);
+    letter-spacing:0.06em;z-index:700;pointer-events:none;
+    animation:bannerPulse 2.2s ease-in-out forwards;
+    text-align:center;
+  }
+  @keyframes bannerPulse{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(0.85);}
+    15%{opacity:1;transform:translate(-50%,-50%) scale(1);}
+    85%{opacity:1;}
+    100%{opacity:0;transform:translate(-50%,-50%) scale(1.05);}
+  }
+
+  .contact-scene{
+    position:relative;min-height:170px;border-radius:10px;overflow:hidden;
+    margin-bottom:20px;cursor:default;
+    display:flex;align-items:center;justify-content:center;
+    padding:18px;
+    background:radial-gradient(120% 100% at 30% 0%, #232945 0%, #12141c 75%);
+  }
+  .contact-photo{
+    position:relative;z-index:2;
+    max-width:100%;max-height:260px;
+    width:auto;height:auto;
+    border-radius:12px;object-fit:contain;
+    border:2px solid var(--teal);
+    display:block;
+  }
+  .contact-photo-fallback{
+    display:none;position:relative;z-index:2;
+    width:140px;height:220px;border-radius:12px;
+    align-items:center;justify-content:center;text-align:center;
+    color:var(--text-dim);font-family:'Space Mono',monospace;font-size:10px;
+    border:1px dashed var(--line);line-height:1.5;
+  }
+  .bird{
+    position:absolute;width:22px;height:14px;z-index:3;
+    pointer-events:none;
+    animation:flyaway 1.3s ease-out forwards;
+  }
+  @keyframes flyaway{
+    0%{opacity:0.9;transform:translate(0,0) scale(0.8);}
+    100%{opacity:0;transform:translate(var(--dx,60px), var(--dy,-50px)) scale(1.1);}
+  }
+
+  /* ---------------- TASKBAR ---------------- */
+  #taskbar{
+    position:fixed;left:0;right:0;bottom:0;height:46px;
+    background:var(--panel-2);
+    border-top:1px solid var(--line);
+    display:flex;align-items:center;
+    padding:0 10px;gap:10px;
+    z-index:500;
+    font-family:'Space Mono',monospace;
+  }
+  #startBtn{
+    background:var(--teal);color:var(--bg-deep);
+    border:none;border-radius:5px;
+    font-family:'Space Mono',monospace;font-weight:700;font-size:13px;
+    padding:8px 16px;cursor:pointer;letter-spacing:0.03em;
+  }
+  #startBtn:hover{background:#7ee5d3;}
+    #taskTabs {
+        display: flex;
+        gap: 6px;
+        flex: 1;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: var(--teal) transparent;
+    }
+
+        #taskTabs::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        #taskTabs::-webkit-scrollbar-thumb {
+            background: var(--teal);
+            border-radius: 2px;
+        }
+
+        #taskTabs::-webkit-scrollbar-track {
+            background: transparent;
+        }
+  .task-tab{
+    background:var(--panel);border:1px solid var(--line);border-radius:5px;
+    color:var(--text-dim);font-size:12px;padding:7px 14px;cursor:pointer;
+    white-space:nowrap;
+  }
+  .task-tab.active{color:var(--text);border-color:var(--teal);}
+  #clock{font-size:13px;color:var(--text-dim);padding:0 6px;}
+
+  /* ---------------- START MENU ---------------- */
+  #startMenu{
+    position:fixed;bottom:56px;left:10px;
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;width:210px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    display:none;flex-direction:column;padding:8px;z-index:600;
+  }
+  #startMenu.open{display:flex;}
+  .menu-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:6px;cursor:pointer;
+    font-family:'Space Mono',monospace;font-size:13px;color:var(--text);
+  }
+  .menu-item:hover{background:rgba(79,214,192,0.1);color:var(--teal);}
+
+  @media (max-width:720px){
+    .win{width:88vw !important;left:6vw !important;}
+    #icons{top:20px;left:16px;gap:20px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="boot">IFTIHAD_OS v1.0<span class="cursor">&nbsp;</span></div>
+
+<div id="desktop">
+  <div id="icons">
+    <div class="icon" data-open="about">
+      <div class="glyph"><svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="4" width="28" height="32" rx="2" fill="#2b3049" stroke="#4fd6c0" stroke-width="1.5"/><line x1="11" y1="13" x2="29" y2="13" stroke="#9aa0b4" stroke-width="1.5"/><line x1="11" y1="19" x2="29" y2="19" stroke="#9aa0b4" stroke-width="1.5"/><line x1="11" y1="25" x2="22" y2="25" stroke="#9aa0b4" stroke-width="1.5"/></svg></div>
+      <span>about.txt</span>
+    </div>
+    <div class="icon" data-open="work">
+      <div class="glyph"><svg width="42" height="40" viewBox="0 0 42 40"><path d="M2 10 L16 10 L20 15 L40 15 L40 34 L2 34 Z" fill="#3a3f57" stroke="#ff7a3d" stroke-width="1.5"/></svg></div>
+      <span>work</span>
+    </div>
+    <div class="icon" data-open="devlog">
+      <div class="glyph"><svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="4" width="28" height="32" rx="2" fill="#2b3049" stroke="#ff7a3d" stroke-width="1.5"/><line x1="11" y1="12" x2="29" y2="12" stroke="#ff7a3d" stroke-width="1.5"/><line x1="11" y1="18" x2="24" y2="18" stroke="#9aa0b4" stroke-width="1.5"/><line x1="11" y1="24" x2="29" y2="24" stroke="#9aa0b4" stroke-width="1.5"/><line x1="11" y1="30" x2="20" y2="30" stroke="#9aa0b4" stroke-width="1.5"/></svg></div>
+      <span>devlog.log</span>
+    </div>
+    <div class="icon" data-open="vfx">
+      <div class="glyph"><svg width="40" height="40" viewBox="0 0 40 40"><rect x="4" y="8" width="32" height="24" rx="2" fill="#2b3049" stroke="#4fd6c0" stroke-width="1.5"/><path d="M17 15 L26 20 L17 25 Z" fill="#4fd6c0"/></svg></div>
+      <span>vfx_reel</span>
+    </div>
+    <div class="icon" data-open="contact">
+      <div class="glyph"><svg width="40" height="40" viewBox="0 0 40 40"><rect x="4" y="9" width="32" height="22" rx="2" fill="#2b3049" stroke="#4fd6c0" stroke-width="1.5"/><path d="M4 11 L20 24 L36 11" fill="none" stroke="#4fd6c0" stroke-width="1.5"/></svg></div>
+      <span>contact.txt</span>
+    </div>
+    <div class="icon" data-open="resume">
+      <div class="glyph"><svg width="34" height="40" viewBox="0 0 34 40"><path d="M4 2 H22 L30 10 V38 H4 Z" fill="#2b3049" stroke="#ff7a3d" stroke-width="1.5"/><path d="M22 2 V10 H30 Z" fill="#ff7a3d"/></svg></div>
+      <span>resume.pdf</span>
+    </div>
+  </div>
+</div>
+
+<div id="taskbar">
+  <button id="startBtn">MENU</button>
+  <div id="taskTabs"></div>
+  <div id="clock">00:00</div>
+</div>
+
+<div id="startMenu">
+  <div class="menu-item" data-open="about">about.txt</div>
+  <div class="menu-item" data-open="work">work</div>
+  <div class="menu-item" data-open="devlog">devlog.log</div>
+  <div class="menu-item" data-open="vfx">vfx_reel</div>
+  <div class="menu-item" data-open="contact">contact.txt</div>
+  <div class="menu-item" data-open="resume">resume.pdf</div>
+</div>
+
+<script>
+/* ---------- boot sequence ---------- */
+const bootEl = document.getElementById('boot');
+const lines = [
+  'Portfolio_OS v1.0',
+  '',
+  'Checking Connection .......... OK',
+  'Checking Data ................ OK',
+  'Loading Projects ............. OK',
+  'indexing procedural_gen_data . OK',
+  '',
+  'welcome back.'
+];
+let li = 0;
+function typeLine(){
+  if(li >= lines.length){
+    setTimeout(()=>{
+      bootEl.style.transition = 'opacity 0.5s ease';
+      bootEl.style.opacity = '0';
+      document.getElementById('desktop').style.opacity = '1';
+      setTimeout(()=> bootEl.remove(), 500);
+    }, 500);
+    return;
+  }
+  bootEl.innerHTML = lines.slice(0, li+1).join('\n') + '<span class="cursor">&nbsp;</span>';
+  li++;
+  setTimeout(typeLine, 260);
+}
+setTimeout(typeLine, 400);
+
+/* ---------- clock ---------- */
+function tick(){
+  const d = new Date();
+  document.getElementById('clock').textContent =
+    d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+tick(); setInterval(tick, 1000*30);
+
+/* ---------- window content ---------- */
+const WINDOWS = {
+  about: {
+    title:'about.txt',
+    x:120, y:70, w:460,
+    body:`
+      <h2>Eftihad Tiham</h2>
+      <p>I am a Games Developer with a BSc (Hons) in Games Development from Staffordshire University. Creating immersive, engaging experiences for players is my passion. This portfolio showcases my journey and growth as a developer, featuring projects from university.
+As a student, I worked on projects exploring various aspects of game development, including programming fundamentals in C++, VFX systems in Niagara, and procedural generation. I also worked on a dissertation exploring procedural level generation, building a 3D dungeon system in Unreal Engine and evaluating it through player surveys.</p>
+      <p>Currently looking for graduate / junior roles in gameplay programming, tools, or real-time VFX.</p>
+
+      <div class="skills-cat">
+        <h4>Programming</h4>
+        <div class="skillrow">
+          <span>C++</span><span>C#</span><span>JavaScript</span><span>Java</span>
+        </div>
+      </div>
+      <div class="skills-cat">
+        <h4>Engine / Game Development</h4>
+        <div class="skillrow">
+          <span>Unreal Engine</span><span>Unity</span>
+        </div>
+      </div>
+
+      <h2 style="margin-top:26px;">Key Projects</h2>
+      <div class="projects-grid">
+        <div class="project-card" data-open="proclevelgen">
+          <div class="project-thumb">
+            <img src="proclevelgen-thumb.jpg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="thumb-fallback">add<br>proclevelgen-thumb.jpg</div>
+          </div>
+          <div class="project-card-body">
+            <h4>Procedural Level Generation</h4>
+            <div class="meta">UE5 · Procedural Generation</div>
+            <div class="more">More &#8594;</div>
+          </div>
+        </div>
+        <div class="project-card" data-open="procsnowgen">
+          <div class="project-thumb">
+            <img src="procsnowgen-thumb.jpg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="thumb-fallback">add<br>procsnowgen-thumb.jpg</div>
+          </div>
+          <div class="project-card-body">
+            <h4>Procedural Generated Snow</h4>
+            <div class="meta">Procedural Generation</div>
+            <div class="more">More &#8594;</div>
+          </div>
+        </div>
+        <div class="project-card" data-open="gokart">
+          <div class="project-thumb">
+            <img src="gokart-thumb.jpg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="thumb-fallback">add<br>gokart-thumb.jpg</div>
+          </div>
+          <div class="project-card-body">
+            <h4>Go Kart Physics Sim</h4>
+            <div class="meta">Physics</div>
+            <div class="more">More &#8594;</div>
+          </div>
+        </div>
+        <div class="project-card" data-open="potiongame">
+          <div class="project-thumb">
+            <img src="potiongame-thumb.jpg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="thumb-fallback">add<br>potiongame-thumb.jpg</div>
+          </div>
+          <div class="project-card-body">
+            <h4>Potion Brewing Game</h4>
+            <div class="meta">Team production</div>
+            <div class="more">More &#8594;</div>
+          </div>
+        </div>
+        <div class="project-card" data-open="mariokart">
+          <div class="project-thumb">
+            <img src="mariokart-thumb.jpg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="thumb-fallback">add<br>mariokart-thumb.jpg</div>
+          </div>
+          <div class="project-card-body">
+            <h4>Multiplayer Kart Racer</h4>
+            <div class="meta">Multiplayer · Team production</div>
+            <div class="more">More &#8594;</div>
+          </div>
+        </div>
+        <div class="project-card" data-open="coinflick">
+          <div class="project-thumb">
+            <img src="coinflick-thumb.jpg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="thumb-fallback">add<br>coinflick-thumb.jpg</div>
+          </div>
+          <div class="project-card-body">
+            <h4>CoinFlick</h4>
+            <div class="meta">Mobile game</div>
+            <div class="more">More &#8594;</div>
+          </div>
+        </div>
+      </div>
+    `
+  },
+  work: {
+    title:'work',
+    x:420, y:130, w:380,
+    body:`
+      <div class="filelist">
+        <div class="filerow" data-open="proclevelgen">
+          <div class="glyph"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" rx="3" fill="#2b3049" stroke="#9aa0b4"/></svg></div>
+          <div class="meta"><span class="fname">proc_level_gen.doc</span><span class="fdesc">Procedural generation</span></div>
+        </div>
+        <div class="filerow" data-open="procsnowgen">
+          <div class="glyph"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" rx="3" fill="#2b3049" stroke="#9aa0b4"/></svg></div>
+          <div class="meta"><span class="fname">proc_snow_gen.exe</span><span class="fdesc">Procedural generation</span></div>
+        </div>
+        <div class="filerow" data-open="gokart">
+          <div class="glyph"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" rx="3" fill="#2b3049" stroke="#4fd6c0"/></svg></div>
+          <div class="meta"><span class="fname">gokart_physics.exe</span><span class="fdesc">Physics simulation</span></div>
+        </div>
+        <div class="filerow" data-open="WeatherPlugin">
+  <div class="glyph"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" rx="3" fill="#2b3049" stroke="#4fd6c0"/></svg></div>
+  <div class="meta"><span class="fname">Weather_Plugin.exe</span><span class="fdesc">Plugin</span></div>
+</div>
+<div class="filerow" data-open="UnityVR">
+  <div class="glyph"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" rx="3" fill="#2b3049" stroke="#4fd6c0"/></svg></div>
+  <div class="meta"><span class="fname">Unity_VR.exe</span><span class="fdesc">Unity Vr</span></div>
+</div>
+        <div class="filerow" data-open="potiongame">
+          <div class="glyph"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" rx="3" fill="#2b3049" stroke="#4fd6c0"/></svg></div>
+          <div class="meta"><span class="fname">potion_game.exe</span><span class="fdesc">Team collab</span></div>
+        </div>
+        <div class="filerow" data-open="mariokart">
+          <div class="glyph"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" rx="3" fill="#2b3049" stroke="#4fd6c0"/></svg></div>
+          <div class="meta"><span class="fname">multiplayer_kart.exe</span><span class="fdesc">Team collab</span></div>
+        </div>
+        <div class="filerow" data-open="coinflick">
+          <div class="glyph"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" rx="3" fill="#2b3049" stroke="#ff7a3d"/></svg></div>
+          <div class="meta"><span class="fname">coinflick.exe</span><span class="fdesc">Mobile game</span></div>
+        </div>
+      </div>
+    `
+  },
+  proclevelgen: {
+    title:'PCG_Level_gen.doc',
+    x:140, y:75, w:460,
+    body:`
+      <h2>Procedural Level Generation</h2>
+      <p>Unreal Engine 5 | C++ | Dissertation Project</p>
+<p>I built a 3D procedural level generation system in Unreal Engine 5 to explore how algorithmically generated dungeons can create varied, replayable player experiences without manual level design.</p>
+<p>The system generates dungeon layouts at runtime, handling room placement, connectivity, and spatial variation to avoid repetitive or predictable results. To validate the approach beyond just technical function, I ran a 14-participant survey assessing how players experienced the generated levels, using the results to refine the generation logic and improve overall level quality.</p>
+<p>This project formed the core of my dissertation and pushed me to think about procedural generation not just as an algorithm problem, but as a design problem, balancing randomness with structure so the results still feel intentional and fun to explore.</P>
+      <div><span class="tag">UE5</span><span class="tag">Procedural Generation</span></div>
+      <div style="margin:18px 0; aspect-ratio:16/9;">
+  <iframe 
+  width="460" 
+  height="240" 
+  src="https://www.youtube.com/embed/ltauOGvri8Y" 
+  title="YouTube video player" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  allowfullscreen>
+</iframe>
+      <p style="margin-top:0;"><a href="https://github.com/Notifty/FYP_Dissertation" target="_blank" style="color:#4fd6c0;">View source on GitHub &#8594;</a></p>
+    `
+  },
+  procsnowgen: {
+    title:'PCG_Snow_Gen.exe',
+    x:380, y:180, w:460,
+    body:`
+      <h2>Procedural Generated Snow</h2>
+      <p>Unreal Engine 5 | Procedural Content Generation </p>
+      <p>This system explores how environmental storytelling can be handled procedurally rather than through manual asset work. Instead of hand-sculpting or texture-painting snow onto trees, bushes, and grass, the system generates foliage meshes and applies snow coverage automatically, driven by real-time environmental parameters like temperature, snowfall intensity, and time progression.</p>
+      <p>Snow doesn't just sit as a static layer, it reacts. Coverage and thickness vary procedurally based on surface slope and exposure, so a sheltered branch holds snow differently than an exposed one. As temperature rises, snow melts back; as snowfall intensifies, coverage builds up. Every part of this is exposed as tunable parameters, snow depth, spread, melt rate, blending strength, so the look can be art-directed rather than left purely to the algorithm.</p>
+      <p>Performance was a core consideration from the start rather than an afterthought: the system leans on instancing and LOD techniques to keep large-scale environments (forests, fields, mountainsides) scalable and efficient, rather than tanking frame rate the moment foliage density goes up.</p>
+      <div><span class="tag">Procedural Generation</span></div>
+        <iframe 
+  width="460" 
+  height="240" 
+  src="https://www.youtube.com/embed/K4iN6ooTaR4" 
+  title="YouTube video player" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  allowfullscreen>
+</iframe>
+      <p style="margin-top:0;"><a href="https://github.com/Notifty/PCG_Snow" target="_blank" style="color:#4fd6c0;">View source on GitHub &#8594;</a></p>
+    `
+  },
+  gokart: {
+    title:'gokart_physics.exe',
+    x:420, y:210, w:460,
+    body:`
+      <h2>Physics Simulation — Go Kart Game</h2>
+      <p>Unreal Engine 5 | C++ | Vehicle Physics & AI</p>
+      <p>This project set out to solve a problem I noticed across the karting genre: games tend to sit at one extreme or the other, Mario Kart-style handling that's instantly responsive but weightless, or Assetto Corsa-style simulation that's high-fidelity but has a steep barrier to entry. Gokart Physics is my attempt to bridge the two: physics-driven handling with stylized, readable feedback.</p>
+      <p>The vehicle itself runs on a rigid body simulation with 4-point raycast suspension and torque-based drive wheels, so handling feels grounded rather than scripted. The drift mechanic isn't a canned animation or input trick, it's an emergent result of lateral force exceeding tire grip, meaning the car actually has to lose grip to slide, and how it slides depends on speed, angle, and weight transfer. The camera reinforces this with a physics-reactive spring arm that widens FoV at speed and tilts under G-load through corners, so the feel of momentum comes through even before you look at the speedometer.</p>
+      <p>Combat uses physical impulses rather than simple health values, hits apply real force vectors to the kart, so getting hit actually disrupts your line and momentum instead of just draining a bar. AI racers run on proprietary PID controllers, dynamically managing torque and friction rather than following scripted rubber-banding, and tracks are built from modular components designed specifically to stress-test suspension at high speed.</p>
+      <p>What started as an 8-week prototype scoped around a "Must/Should/Could" plan ended up going well beyond its original must-haves, the finished build includes full local multiplayer, complete AI opponents, working weapon systems, and full controller support, all running on the same core physics foundation.</p>
+      <p>Key Areas:</p>
+      <p>Raycast-based suspension and torque-driven vehicle physics</p>
+      <p>Emergent, force-based drift system (not scripted or input-locked)</p>
+      <p>Physics-reactive camera (dynamic FoV, G-load tilt)</p>
+      <p>Impulse-based weapon system</p>
+      <p>Local multiplayer with full controller support</p>
+      <p>AI opponents using PID-controlled driving logic</p>
+      <div><span class="tag">Physics</span></div>
+             <iframe 
+  width="460" 
+  height="240" 
+  src="https://www.youtube.com/embed/-JD2T29bPc8" 
+  title="YouTube video player" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  allowfullscreen>
+</iframe>
+      <p style="margin-top:0;"><a href="https://github.com/Notifty/Project_1" target="_blank" style="color:#4fd6c0;">View source on GitHub &#8594;</a></p>
+    `
+  },
+  potiongame: {
+    title:'potion_game.exe',
+    x:460, y:240, w:460,
+    body:`
+      <h2>Potion Brewing Game (Team Collab)</h2>
+      <p>Unreal Engine 5 | Niagara VFX | Team Project</p>
+      <p>Built as part of a collaborative game development module, this single-player game centers on a gather → brew → sell loop: players collect ingredients out in the world, combine them through a brewing system to create potions, then sell what they've made. The loop is simple to read but built to reward experimentation, players are encouraged to learn what ingredients produce what results and refine their approach over time.</p>
+      <p>My core role on the team was VFX, I built ten custom Niagara particle systems from scratch to bring the brewing process to life, giving ingredients, reactions, and finished potions a distinct visual identity so the crafting moment actually felt satisfying rather than just a menu interaction. But my contribution went beyond visuals: I also worked directly in the gameplay code, helping implement mechanics and tracking down and fixing bugs across the project, working closely with the rest of the team to keep systems functioning as features came together.</p>
+      <p>It was a good exercise in working within a shared codebase, rather than owning a system end-to-end solo, I had to fit my VFX and code work around what teammates were building, communicate changes clearly, and make sure my particle systems hooked correctly into gameplay events I didn't personally write.</p>
+      <p>Key areas:</p>
+      <p>Gather → brew → sell core gameplay loop</p>
+      <p>10 custom Niagara VFX systems for ingredients, brewing, and finished potions</p>
+      <p>Gameplay mechanics implementation and bug fixing</p>
+      <p>Collaborative development within a shared team codebase</p>
+      <div><span class="tag">Team production</span></div>
+                   <iframe 
+  width="460" 
+  height="240" 
+  src="https://www.youtube.com/embed/dQ3ttoHfbdM?si=KzQlqIYPHj0wcR3s" 
+  title="YouTube video player" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  allowfullscreen>
+</iframe>
+      <p style="margin-top:0;"><a href="https://sourdemann.itch.io/pollys-apothecary" target="_blank" style="color:#4fd6c0;">Play The Game &#8594;</a></p>
+    `
+  },
+  mariokart: {
+    title:'multiplayer_kart',
+    x:500, y:270, w:460,
+    body:`
+      <h2>Multiplayer Kart Racer (Team Collab)</h2>
+      <p>Unreal Engine 5 | Niagara VFX | Team Project</p>
+      <p>Built as a collaborative university team project, this game takes the familiar Mario Kart formula, competitive kart racing, items, chaos, and reworks it around a cat racing theme, with full multiplayer support so players can race and compete against each other directly.</p>
+      <p>My role on the team centered on VFX, I built out the full suite of visual effects for the game, covering everything from item pickups and power-ups to race feedback and environmental polish, giving the game a distinct, readable visual identity that matched the playful cat theme. Alongside VFX, I worked across the wider codebase helping debug issues as they came up, tracking down problems across systems I hadn't personally built and working with teammates to get them resolved.</p>
+      <p>As with any team project, a big part of the work was integration, making sure the VFX I built actually synced correctly with gameplay events, multiplayer state, and mechanics owned by other people on the team, and being flexible enough to jump into debugging wherever the project needed it rather than staying narrowly in one lane.</p>
+      <div><span class="tag">Multiplayer</span><span class="tag">Team production</span></div>
+                         <iframe 
+  width="460" 
+  height="240" 
+  src="https://www.youtube.com/embed/NaXNUp4RGfc?si=3bqhWwt0JzGoxe2K" 
+  title="YouTube video player" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  allowfullscreen>
+</iframe>
+      <p style="margin-top:0;"><a href="https://kieran-oneill.itch.io/zoomies" target="_blank" style="color:#4fd6c0;">Play The Game &#8594;</a></p>
+    `
+    },
+    WeatherPlugin: {
+        title: 'Unreal Plugin',
+        x: 140, y: 75, w: 460,
+        body: `
+      <h2>Unreal Weather Plugin</h2>
+      <p>Unreal Engine 5 | C++ | Plugin Development</p>
+<p>This is a self-contained weather plugin built for Unreal Engine 5, designed to drop into any project and give designers direct control over environmental weather without needing to touch underlying code. Rather than being tied to one game's specific art direction, it was built as a reusable system, configurable weather states with adjustable parameters, so it can adapt to different projects and visual styles.</p>
+<p>The plugin supports multiple weather states, including snow and rain, each with independently controllable intensity, so a scene can shift from a light drizzle to a full storm, or light flurries to heavy snowfall, using the same underlying system. Weather isn't just cosmetic overlay, either, it drives real surface reactivity: rain dynamically forms puddles on appropriate surfaces, and snow accumulates on foliage, tying the weather system directly into how the environment looks and feels rather than layering effects on top of it..</p>
+<p>Building this as a plugin rather than a one-off system meant thinking about API design and modularity from the start: exposing the right parameters for designers to tune, keeping the internal implementation decoupled from any specific project's assets, and making sure the system could be dropped into a new scene without a rebuild..</P>
+      <div><span class="tag">UE5</span><span class="tag">Plugin</span></div>
+      <div style="margin:18px 0; aspect-ratio:16/9;">
+  <iframe 
+  width="460" 
+  height="240" 
+  src="https://www.youtube.com/embed/uLbxvDdaQq0"
+  title="YouTube video player" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  allowfullscreen>
+</iframe>
+      <p style="margin-top:0;"><a href="https://github.com/Notifty/Weather_Plugin" target="_blank" style="color:#4fd6c0;">View source on GitHub &#8594;</a></p>
+    `
+    },
+    UnityVR: {
+        title: 'Virtual Reality',
+        x: 140, y: 75, w: 460,
+        body: `
+      <h2>Haunted Mansion VR</h2>
+      <p>Unity | VR Development | C#</p>
+<p>Haunted Mansion VR puts the player outside a locked, ghost-infested mansion with almost nothing to work with, just a bucket and their own two hands. The core loop is built entirely around physical VR interaction: players explore the grounds outside the mansion searching for rocks, gather them up in the bucket, then use them as makeshift weapons, physically throwing them at ghosts inside the mansion to take them down.</p>
+<p>Beating the ghosts isn't the end goal, though, it's the means to one. Defeated ghosts drop keys, and collecting those keys is what actually lets the player unlock their way into, and eventually out of, the mansion. That structure turns the game into a loop of exploration, aim, and resource management: you can't just march in with weapons, you have to gather ammo first, then commit to using it precisely, since every rock spent is one you had to go find.</p>
+<p>Building around VR meant the throwing mechanic couldn't just be a button press, it needed to actually respond to real arm motion, release timing, and throw force, so hitting a moving ghost feels like a physical skill rather than an aimed reticle. Combined with the outside-in structure (gather in the open world, fight inside the mansion), the game leans into VR's strength for making simple mechanics, picking things up, throwing them, feel tactile and immersive rather than abstracted through a controller.</P>
+      <div><span class="tag">Unity</span><span class="tag">VR</span></div>
+      <div style="margin:18px 0; aspect-ratio:16/9;">
+      <p style="margin-top:0;"><a href="https://github.com/Notifty/Chains_ShacklesVR" target="_blank" style="color:#4fd6c0;">View source on GitHub &#8594;</a></p>
+    `
+    },
+  coinflick: {
+    title:'coinflick.exe',
+    x:560, y:180, w:460,
+    body:`
+      <h2>CoinFlick</h2>
+      <p>Unity 6 | Mobile Development | C#</p>
+      <p>CoinFlick is a mobile game built around Zeni Hajiki, a traditional coin-flicking game, reimagined for touch input and mobile play. The core loop is simple to pick up but relies on precise physics and feel: players flick coins across a board, aiming to knock opponents' coins off or land in scoring zones, so getting the underlying mechanics right was the whole game.</p>
+      <p>A lot of the work went into making that core feel solid. I fixed core gameplay logic across coin removal, scoring, and frustum culling, and went through multiple camera iterations to get framing and feedback feeling right for a mobile screen. Beyond gameplay code, I integrated Unity Ads to handle monetization, connecting the game to a real revenue path rather than leaving it as a standalone prototype.</p>
+      <p>Production-wise, I treated this as a full mini end-to-end project rather than just a coding exercise, writing a complete Game Design Document and Technical Design Document, along with devlogs tracking iteration and decisions, and prototype decks for presenting the game's direction and progress.</p>
+      <p>Key areas:</p>
+      <p>Touch-based coin-flicking mechanics (Zeni Hajiki-inspired)</p>
+      <p>Core gameplay logic: coin removal, scoring, frustum culling</p>
+      <p>Camera system iteration for mobile framing and feedback</p>
+      <p>Unity Ads integration for monetization</p>
+      <p>Full documentation: GDD, TDD, devlogs, prototype decks</p>
+      <div><span class="tag">C#</span><span class="tag">Unity Ads</span><span class="tag">Mobile UX</span></div>
+                   <iframe 
+  width="460" 
+  height="240" 
+  src="https://www.youtube.com/embed/dZFYe9Q85r8" 
+  title="YouTube video player" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  allowfullscreen>
+</iframe>
+      <p style="margin-top:0;"><a href="https://github.com/Notifty/FingerTosser" target="_blank" style="color:#4fd6c0;">View source on GitHub &#8594;</a></p>
+    `
+  },
+  devlog: {
+    title:'devlog.log',
+    x:160, y:80, w:460,
+    body:`
+      <h2>Devlog</h2>
+      <p>Running log of what I've been building lately. Newest first.</p>
+
+      <div class="log-entry">
+        <div class="log-date">2026-07-09</div>
+        <h3>Rebuilt the portfolio as a desktop OS</h3>
+        <p>Replaced the old site with a draggable-window, taskbar, boot-sequence version. Added a work folder for projects and a separate VFX reel section for video clips.</p>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-date">2026-07-15</div>
+        <h3>New Venture</h3>
+        <p>Been getting into iOS development lately, starting with Swift and learning how Xcode actually works. Coming from a C++/C# games background, the syntax and overall philosophy feel pretty different, so there's been a real learning curve just getting oriented. I've spent most of my time reading up on the language itself, things like optionals, structs vs classes, and Swift's whole approach to safety and clean syntax. Xcode has been its own learning curve too, understanding the project structure, how SwiftUI fits in, and how the build and simulator pipeline actually works. It's interesting seeing how much of my instinct for structuring code carries over from games, and how much is genuinely different once UI and platform constraints come into play. Still early days and mostly research so far. Next step is to stop reading and actually start building something small, just to get hands-on. Even a basic app would be a good first real test.</p>
+      </div>
+
+    `
+  },
+  vfx: {
+    title:'vfx_reel',
+    x:200, y:90, w:460,
+    body:`
+      <h2>VFX Reel</h2>
+      <p>Here's a short paragraph for that section:
+
+Alongside gameplay and systems work, VFX has been a consistent thread throughout my time at university. I've built real-time visual effects across multiple team and solo projects using Unreal Engine's Niagara system, from ten custom particle systems for a potion-brewing game to the full VFX suite for a multiplayer cat kart racer, as well as procedural, environment-reactive effects like dynamic snow accumulation on foliage. My focus has always been on effects that feel physically grounded and tied to gameplay, rather than just decorative polish.</p>
+
+      <div style="margin:20px 0; padding-bottom:20px; border-bottom:1px solid #343a52;">
+        <p style="color:#e9e7df; font-family:'Space Mono',monospace; font-size:13px; margin-bottom:8px;">Bubbling VFX — UE5 / Niagara</p>
+        <video controls style="width:100%; border-radius:6px;">
+          <source src="potion-vfx-demo.mp4" type="video/mp4">
+        </video>
+        <p style="margin-top:8px;">A bubbling potion VFX built in Niagara, using layered particle emitters and rising motion to sell the feeling of an active, reactive brew.</p>
+        <div><span class="tag">Niagara</span><span class="tag">UE5</span><span class="tag">Team production</span></div>
+      </div>
+
+      <div style="margin:20px 0; padding-bottom:20px; border-bottom:1px solid #343a52;">
+        <p style="color:#e9e7df; font-family:'Space Mono',monospace; font-size:13px; margin-bottom:8px;">Firecrackers VFX — UE5 / Niagara</p>
+        <video controls style="width:100%; border-radius:6px;">
+          <source src="vfx-clip-2.mp4" type="video/mp4">
+        </video>
+        <p style="margin-top:8px;">A firecracker VFX built with layered particle emitters, combining sharp ricocheting sparks with staggered burst timing to capture that chaotic, multi-directional snap of a real firecracker going off..</p>
+      </div>
+
+      <div style="margin:20px 0; padding-bottom:20px; border-bottom:1px solid #343a52;">
+        <p style="color:#e9e7df; font-family:'Space Mono',monospace; font-size:13px; margin-bottom:8px;">Fireworks VFX — UE5 / Niagara </p>
+        <video controls style="width:100%; border-radius:6px;">
+          <source src="vfx-clip-3.mp4" type="video/mp4">
+        </video>
+        <p style="margin-top:8px;">A classic fireworks VFX with a rising trail that launches skyward before blooming into a radial burst of particles, timed for that satisfying launch-then-explode payoff.</p>
+      </div>
+
+      <div style="margin:20px 0; padding-bottom:20px; border-bottom:1px solid #343a52;">
+        <p style="color:#e9e7df; font-family:'Space Mono',monospace; font-size:13px; margin-bottom:8px;">Fire VFX  — UE5 / Niagara</p>
+        <video controls style="width:100%; border-radius:6px;">
+          <source src="vfx-clip-4.mp4" type="video/mp4">
+        </video>
+        <p style="margin-top:8px;">A wide-spreading fire VFX with layered, flickering flames that ripple and shift along the length of the burn line, giving it a natural, moving spread rather than a static flame loop.</p>
+      </div>
+
+      <div style="margin:20px 0;">
+        <p style="color:#e9e7df; font-family:'Space Mono',monospace; font-size:13px; margin-bottom:8px;">Hooming Missiles — UE5 / Niagara</p>
+        <video controls style="width:100%; border-radius:6px;">
+          <source src="vfx-clip-5.mp4" type="video/mp4">
+        </video>
+        <p style="margin-top:8px;">A homing missile VFX combining a bright core trail with a dynamic smoke plume, curving smoothly to track its target and sell a real sense of guided, mid-air correction.</p>
+      </div>
+    `
+  },
+  contact: {
+    title:'contact.txt',
+    x:180, y:250, w:460,
+    body:`
+      <div class="contact-scene" id="contactScene">
+        <img class="contact-photo" src="your-photo.jpg" alt="Photo of Iftihad"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="contact-photo-fallback">drop<br>your-photo.jpg<br>next to this file</div>
+      </div>
+      <h2>Get in touch</h2>
+      <div class="contact-row"><span>Email</span><a href="mailto:Iftiham1@gmail.com">Iftiham1@gmail.com</a></div>
+      <div class="contact-row"><span>LinkedIn</span><a href="https://www.linkedin.com/in/eftihadekram/?skipRedirect=true">linkedin.com/in/eftihadekram</a></div>
+      <div class="contact-row"><span>GitHub</span><a href="https://github.com/Notifty">github.com/Notifty</a></div>
+    `
+  },
+    resume: {
+        title: 'resume.pdf',
+        x: 260, y: 100, w: 360,
+        body: `
+      <h2>Resume</h2>
+      <p>My most up-to-date CV.</p>
+      <div class="contact-row"><span>Download</span><a href="resume.pdf" target="_blank" download>resume.pdf</a></div>
+      <embed src="resume.pdf" type="application/pdf" width="100%" height="400px" style="margin-top:16px; border-radius:6px;">
+    `
+    }
+};
+
+let zTop = 10;
+const openWins = {};
+
+function birdSVG(){
+  return '<svg viewBox="0 0 24 14" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M1 10 Q6 0 12 8 Q18 0 23 10" stroke="#5eeecb" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+    '</svg>';
+}
+
+function spawnBird(container, x, y){
+  const b = document.createElement('div');
+  b.className = 'bird';
+  b.style.left = (x - 11) + 'px';
+  b.style.top = (y - 7) + 'px';
+  const dx = (Math.random()*50 + 40) * (Math.random() < 0.5 ? -1 : 1);
+  const dy = -(Math.random()*40 + 40);
+  b.style.setProperty('--dx', dx + 'px');
+  b.style.setProperty('--dy', dy + 'px');
+  b.innerHTML = birdSVG();
+  container.appendChild(b);
+  setTimeout(()=> b.remove(), 1300);
+}
+
+function initContactBirds(win){
+  const scene = win.querySelector('#contactScene');
+  if(!scene) return;
+  let last = 0;
+  scene.addEventListener('mousemove', e=>{
+    const now = Date.now();
+    if(now - last < 140) return;
+    last = now;
+    const rect = scene.getBoundingClientRect();
+    spawnBird(scene, e.clientX - rect.left, e.clientY - rect.top);
+  });
+}
+
+function openWindow(id){
+  if(openWins[id]){
+    focusWindow(id);
+    return;
+  }
+  const cfg = WINDOWS[id];
+  const win = document.createElement('div');
+  win.className = 'win';
+  win.style.left = cfg.x + 'px';
+  win.style.top = cfg.y + 'px';
+  win.style.width = cfg.w + 'px';
+  win.style.zIndex = ++zTop;
+  win.innerHTML = `
+    <div class="win-header">
+      <div class="win-title"><span class="dot"></span>${cfg.title}</div>
+      <div class="win-controls">
+        <div class="win-btn min">_</div>
+        <div class="win-btn close">x</div>
+      </div>
+    </div>
+    <div class="win-body">${cfg.body}</div>
+  `;
+  document.body.appendChild(win);
+  openWins[id] = win;
+
+  win.querySelectorAll('[data-open]').forEach(el=>{
+    el.addEventListener('click', ()=> openWindow(el.dataset.open));
+  });
+  win.querySelector('.close').addEventListener('click', ()=> closeWindow(id));
+  win.querySelector('.min').addEventListener('click', ()=> toggleMin(id));
+  win.addEventListener('mousedown', ()=> focusWindow(id));
+
+  if(id === 'contact') initContactBirds(win);
+
+  makeDraggable(win, win.querySelector('.win-header'));
+  addTaskTab(id, cfg.title);
+  focusWindow(id);
+}
+
+function closeWindow(id){
+  if(openWins[id]){ openWins[id].remove(); delete openWins[id]; }
+  const tab = document.querySelector(`.task-tab[data-id="${id}"]`);
+  if(tab) tab.remove();
+}
+
+function toggleMin(id){
+  const win = openWins[id];
+  win.style.display = win.style.display === 'none' ? 'flex' : 'none';
+}
+
+function focusWindow(id){
+  const win = openWins[id];
+  if(!win) return;
+  win.style.zIndex = ++zTop;
+  win.style.display = 'flex';
+  document.querySelectorAll('.task-tab').forEach(t=>t.classList.remove('active'));
+  const tab = document.querySelector(`.task-tab[data-id="${id}"]`);
+  if(tab) tab.classList.add('active');
+}
+
+function addTaskTab(id, title){
+  const tab = document.createElement('div');
+  tab.className = 'task-tab';
+  tab.dataset.id = id;
+  tab.textContent = title;
+  tab.addEventListener('click', ()=> focusWindow(id));
+  document.getElementById('taskTabs').appendChild(tab);
+}
+
+function makeDraggable(win, handle){
+  let ox=0, oy=0, dragging=false;
+  handle.addEventListener('mousedown', e=>{
+    dragging = true;
+    ox = e.clientX - win.offsetLeft;
+    oy = e.clientY - win.offsetTop;
+  });
+  document.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    win.style.left = Math.max(0, e.clientX - ox) + 'px';
+    win.style.top = Math.max(0, e.clientY - oy) + 'px';
+  });
+  document.addEventListener('mouseup', ()=> dragging = false);
+}
+
+document.querySelectorAll('[data-open]').forEach(el=>{
+  el.addEventListener('click', ()=> openWindow(el.dataset.open));
+});
+
+/* ---------- start menu ---------- */
+const startBtn = document.getElementById('startBtn');
+const startMenu = document.getElementById('startMenu');
+startBtn.addEventListener('click', e=>{
+  e.stopPropagation();
+  startMenu.classList.toggle('open');
+});
+document.addEventListener('click', ()=> startMenu.classList.remove('open'));
+startMenu.querySelectorAll('[data-open]').forEach(el=>{
+  el.addEventListener('click', ()=> { openWindow(el.dataset.open); startMenu.classList.remove('open'); });
+});
+
+/* ---------- desktop click sparks ---------- */
+const sparkPhrases = ['compiled ✓', 'no bugs found', '+1 xp', 'build succeeded', 'frame rate stable', 'nice click'];
+
+function spawnSparkAt(x, y, withText){
+  for(let i=0;i<9;i++){
+    const s = document.createElement('div');
+    s.className = 'spark';
+    const angle = Math.random()*Math.PI*2;
+    const dist = 26 + Math.random()*38;
+    s.style.left = x+'px';
+    s.style.top = y+'px';
+    s.style.setProperty('--sx', Math.cos(angle)*dist+'px');
+    s.style.setProperty('--sy', Math.sin(angle)*dist+'px');
+    s.style.background = Math.random() < 0.5 ? '#4fd6c0' : '#ff7a3d';
+    document.body.appendChild(s);
+    setTimeout(()=> s.remove(), 650);
+  }
+  if(withText){
+    const txt = document.createElement('div');
+    txt.className = 'popup-text';
+    txt.textContent = sparkPhrases[Math.floor(Math.random()*sparkPhrases.length)];
+    txt.style.left = (x - 20) + 'px';
+    txt.style.top = (y - 20) + 'px';
+    document.body.appendChild(txt);
+    setTimeout(()=> txt.remove(), 1000);
+  }
+}
+
+document.getElementById('desktop').addEventListener('click', e=>{
+  if(e.target.id !== 'desktop') return; // only empty desktop space, not icons
+  spawnSparkAt(e.clientX, e.clientY, true);
+});
+
+/* ---------- hidden Konami code easter egg ---------- */
+const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+let konamiIndex = 0;
+
+document.addEventListener('keydown', e=>{
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if(key === konamiCode[konamiIndex]){
+    konamiIndex++;
+    if(konamiIndex === konamiCode.length){
+      konamiIndex = 0;
+      triggerEasterEgg();
+    }
+  } else {
+    konamiIndex = (key === konamiCode[0]) ? 1 : 0;
+  }
+});
+
+function triggerEasterEgg(){
+  const banner = document.createElement('div');
+  banner.id = 'easterBanner';
+  banner.innerHTML = 'DEBUG MODE UNLOCKED';
+  document.body.appendChild(banner);
+  setTimeout(()=> banner.remove(), 2200);
+
+  for(let i=0;i<35;i++){
+    setTimeout(()=>{
+      spawnSparkAt(Math.random()*window.innerWidth, Math.random()*window.innerHeight, false);
+    }, i*25);
+  }
+}
+
+
+/* open About by default once booted */
+setTimeout(()=> openWindow('about'), 3200);
+</script>
+
+</body>
+</html>
